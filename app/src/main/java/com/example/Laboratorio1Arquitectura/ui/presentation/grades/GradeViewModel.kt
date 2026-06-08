@@ -17,6 +17,8 @@ class GradeViewModel(
     private val _uiState = MutableStateFlow<GradeUiState>(GradeUiState.Loading)
     val uiState: StateFlow<GradeUiState> = _uiState.asStateFlow()
 
+    private var lastSuccessState: GradeUiState.Success? = null
+
     private val _currentScreen = MutableStateFlow(GradeScreen.List)
     val currentScreen: StateFlow<GradeScreen> = _currentScreen.asStateFlow()
 
@@ -34,10 +36,15 @@ class GradeViewModel(
                     0.0
                 }
 
-                _uiState.value = GradeUiState.Success(
+                val successState = GradeUiState.Success(
                     grades = grades,
                     average = average
                 )
+
+                lastSuccessState = successState
+                _uiState.value = successState
+
+
             }
         }
     }
@@ -47,6 +54,12 @@ class GradeViewModel(
     }
 
     fun showList() {
+        if (_uiState.value is GradeUiState.Error) {
+            lastSuccessState?.let { successState ->
+                _uiState.value = successState
+            }
+        }
+
         _currentScreen.value = GradeScreen.List
     }
 
